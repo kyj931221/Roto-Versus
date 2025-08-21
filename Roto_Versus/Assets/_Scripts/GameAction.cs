@@ -14,3 +14,10 @@ public enum RotateDirection
     Left,
     Right
 }
+
+public enum RPSChoice
+{
+    Rock,   // 바위
+    Paper,  // 보
+    Scissors // 가위
+}

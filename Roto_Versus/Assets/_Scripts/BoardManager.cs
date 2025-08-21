@@ -7,26 +7,31 @@ using System.Collections;
 public class BoardManager : MonoBehaviour
 {
     // === 인스펙터 창에서 설정할 변수들 ===
-    [Header("Board Settings")] // 인스펙터 창에서 구분을 위한 헤더
-    public int boardSize = 5;       // 보드의 크기 (5x5)
-    public GameObject tilePrefab;      // 바닥 타일로 사용할 프리팹
+    [Header("Board Settings")]
+    public int boardSize = 5;
+    public GameObject tilePrefab;
 
-    [Header("Unit Prefabs")] // 유닛 구분을 위한 헤더
-    public GameObject player1Prefab;   // 플레이어 1로 사용할 프리팹
-    public GameObject player2Prefab;   // 플레이어 2로 사용할 프리팹
-    public GameObject goalPrefab;      // 목표 지점으로 사용할 프리팹
+    [Header("Unit Prefabs")]
+    public GameObject player1Prefab;
+    public GameObject player2Prefab;
+    public GameObject goalPrefab;
+    public GameObject directionMarkerPrefab; // 방향 표시기 프리팹을 연결할 변수
 
     // 생성된 플레이어 오브젝트를 저장하여 다른 스크립트가 접근할 수 있도록 합니다.
     [HideInInspector] public GameObject player1Instance;
     [HideInInspector] public GameObject player2Instance;
 
 
-    // Start 함수는 게임이 시작될 때 단 한 번 자동으로 호출됩니다.
-    void Start()
+    // GameManager가 호출할 보드 생성 함수
+    public void CreateBoard()
     {
-        // 1. 보드 타일들을 생성합니다.
+        // 1. 타일들을 생성합니다.
         GenerateBoard();
-        // 2. 플레이어와 목표 지점을 생성하고 배치합니다.
+
+        // 2. 방향 표시기를 생성합니다.
+        SpawnDirectionMarker();
+
+        // 3. 플레이어와 목표 지점을 생성하고 배치합니다.
         SpawnUnits();
     }
 
@@ -41,6 +46,19 @@ public class BoardManager : MonoBehaviour
                 Instantiate(tilePrefab, tilePosition, Quaternion.identity, this.transform);
             }
         }
+    }
+
+    // 방향 표시기를 생성하는 함수
+    void SpawnDirectionMarker()
+    {
+        if (directionMarkerPrefab == null) return; // 프리팹이 연결 안됐으면 실행 안함
+
+        // 맵의 '정면' 가장자리 중앙 좌표를 계산합니다. (예: 5x5 맵에서는 (0, 0, 2))
+        int maxCoord = (boardSize - 1) / 2;
+        Vector3 markerPos = new Vector3(0, 0.55f, maxCoord); // 타일보다 살짝 위에 배치
+
+        // 표시기를 생성하고, 보드와 함께 회전하도록 자식으로 만듭니다.
+        Instantiate(directionMarkerPrefab, markerPos, Quaternion.identity, this.transform);
     }
 
     // 플레이어와 목표 지점을 생성하고 배치하는 함수
@@ -61,7 +79,7 @@ public class BoardManager : MonoBehaviour
     // 보드를 부드럽게 회전시키는 코루틴 함수
     public IEnumerator RotateBoardRoutine(RotateDirection direction)
     {
-        float duration = 0.5f; // 회전에 걸리는 시간 (초)
+        float duration = 0.5f;
         float elapsed = 0f;
 
         Quaternion startRotation = transform.rotation;
